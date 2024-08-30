@@ -54,12 +54,12 @@ public class HelloApplication extends Application {
         grid.add(outputFileField, 1, 1);
 
         // Execute Y36 button
-        Button executeY36Button = new Button("执行Y36");
+        Button executeY36Button = new Button("执行Y36删除时间戳");
         executeY36Button.setOnAction(e -> executeTimestampRemovalY36());
         grid.add(executeY36Button, 1, 2);
 
         // Execute Y33 button
-        Button executeY33Button = new Button("执行Y33");
+        Button executeY33Button = new Button("执行Y33删除时间戳");
         executeY33Button.setOnAction(e -> executeTimestampRemovalY33());
         grid.add(executeY33Button, 2, 2);
 
