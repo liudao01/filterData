@@ -67,7 +67,19 @@ public class HelloApplication extends Application {
         Button filterY33ServerButton = new Button("过滤Y33Server");
         filterY33ServerButton.setOnAction(e -> filterY33Server());
         grid.add(filterY33ServerButton, 1, 3);
+// 在你的GridPane上添加一个新的按钮用于过滤largeCollectE数据
+        Button filterLargeCollectEButton = new Button("过滤largeCollectE");
+        filterLargeCollectEButton.setOnAction(e -> filterLargeCollectE());
+        grid.add(filterLargeCollectEButton, 2, 3); // 这里设置按钮的位置，2列3行，可以根据实际调整
 
+        // 在GridPane上添加一个新的按钮用于过滤 Origi 数据
+        Button filterOrigiButton = new Button("过滤Origi数据");
+        filterOrigiButton.setOnAction(e -> filterOrigiData());
+        grid.add(filterOrigiButton, 1, 4); // 设置按钮的位置，可以根据实际调整
+// 删除 Origi 时间戳按钮
+        Button deleteOrigiTimestampButton = new Button("删除Origi时间戳");
+        deleteOrigiTimestampButton.setOnAction(e -> deleteOrigiTimestamp());
+        grid.add(deleteOrigiTimestampButton, 2, 4); // 设置按钮的位置
         Scene scene = new Scene(grid, 600, 250);
         primaryStage.setScene(scene);
 
@@ -101,6 +113,82 @@ public class HelloApplication extends Application {
         File file = fileChooser.showOpenDialog(null);
         if (file != null) {
             inputFileField.setText(file.getAbsolutePath());
+        }
+    }
+    private void deleteOrigiTimestamp() {
+        String inputFilePath = inputFileField.getText();
+        String outputFileName = outputFileField.getText();
+
+        if (inputFilePath.isEmpty() || outputFileName.isEmpty()) {
+            System.out.println("请先选择执行的文件并输入输出文件名。");
+            return;
+        }
+
+        // 获取输入文件的目录
+        File inputFile = new File(inputFilePath);
+        String outputFilePath = inputFile.getParent() + File.separator + outputFileName;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // 正则表达式匹配并删除时间戳
+                String cleanedLine = line.replaceAll("^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\d+-\\d+ \\w+\\s+.*? - com\\.sprt\\.yxz\\.printservice\\.Utils\\.XLog\\.largeOriE\\[\\d+\\]", "");
+                writer.write(cleanedLine + "\n");
+            }
+
+            System.out.println("Origi 时间戳删除成功。");
+            System.out.println("输出文件位置: " + outputFilePath);
+
+            // 打开包含输出文件的目录
+            openDirectory(new File(outputFilePath).getParent());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("文件处理时发生错误。");
+        }
+    }
+    // 新增：过滤包含 com.sprt.yxz.printservice.Utils.XLog.largeCollectE 的数据
+    // 新增：过滤包含 com.sprt.yxz.printservice.Utils.XLog.largeCollectE 的数据，并只保留二进制数据
+    private void filterLargeCollectE() {
+        String inputFilePath = inputFileField.getText();
+        String outputFileName = outputFileField.getText();
+
+        if (inputFilePath.isEmpty() || outputFileName.isEmpty()) {
+            System.out.println("请先选择执行的文件并输入输出文件名。");
+            return;
+        }
+
+        // 获取输入文件的目录
+        File inputFile = new File(inputFilePath);
+        String outputFilePath = inputFile.getParent() + File.separator + outputFileName;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // 匹配类似的日志格式
+                String regexPattern = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\d+-\\d+ \\w+ .*? - com\\.sprt\\.yxz\\.printservice\\.Utils\\.XLog\\.largeCollectE.*";
+                if (line.matches(regexPattern)) {
+                    // 提取并保留二进制数据部分
+                    // 假设二进制数据在 ': ' 后
+                    int dataStartIndex = line.indexOf(": ") + 2;
+                    if (dataStartIndex > 1 && dataStartIndex < line.length()) {
+                        String binaryData = line.substring(dataStartIndex);
+                        writer.write(binaryData + "\n");
+                    }
+                }
+            }
+
+            System.out.println("largeCollectE 过滤成功，仅保留二进制数据。");
+            System.out.println("输出文件位置: " + outputFilePath);
+
+            // 打开包含输出文件的目录
+            openDirectory(new File(outputFilePath).getParent());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("文件处理时发生错误。");
         }
     }
 
@@ -230,12 +318,53 @@ public class HelloApplication extends Application {
                 .replaceAll(timestampPattern6, "")
                 .replaceAll(timestampPattern7, "");
     }
+    // 新增：过滤包含 Origi 标签的数据
+    private void filterOrigiData() {
+        String inputFilePath = inputFileField.getText();
+        String outputFileName = outputFileField.getText();
+
+        if (inputFilePath.isEmpty() || outputFileName.isEmpty()) {
+            System.out.println("请先选择执行的文件并输入输出文件名。");
+            return;
+        }
+
+        // 获取输入文件的目录
+        File inputFile = new File(inputFilePath);
+        String outputFilePath = inputFile.getParent() + File.separator + outputFileName;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFilePath));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(outputFilePath))) {
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // 过滤包含 Origi 的行
+                if (line.contains("Origi")) {
+                    writer.write(line + "\n");
+                }
+            }
+
+            System.out.println("Origi 数据过滤成功。");
+            System.out.println("输出文件位置: " + outputFilePath);
+
+            // 打开包含输出文件的目录
+            openDirectory(new File(outputFilePath).getParent());
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("文件处理时发生错误。");
+        }
+    }
 
     private String removeTimestampsY33(String input) {
         // 删除各种时间戳和日志格式
         String timestampPattern = "\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}.*?\\[\\d+\\]";
         return input.replaceAll(timestampPattern, "");
     }
+//    private String removeTimestampsY33(String input) {
+//        // 删除时间戳和日志格式
+//        String timestampPattern = "\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3} \\d+-\\d+ \\w+\\s+.*? - com\\.sprt\\.yxz\\.printservice\\.Utils\\.XLog\\.largeOriE\\[\\d+\\]";
+//        return input.replaceAll(timestampPattern, "");
+//    }
+
 
     private void openDirectory(String path) {
         try {
